@@ -4,19 +4,23 @@
 package com.path.variable.mqtt.pub.demo;
 
 import com.path.variable.mqtt.pub.demo.publisher.MqttPublisher;
-import com.path.variable.mqtt.pub.demo.publisher.TemperatureReport;
+import com.path.variable.mqtt.pub.demo.sensor.Co2Sensor;
 import com.path.variable.mqtt.pub.demo.sensor.TemperatureSensor;
+import com.path.variable.mqtt.pub.demo.sensor.report.RoomReport;
+
+import static java.lang.Thread.sleep;
 
 public class App {
 
     public void run() {
-        var sensor = new TemperatureSensor();
-        var publisher = new MqttPublisher("tcp://127.0.0.1:1883", "temperature-pub");
+        final var temperatureSensor = new TemperatureSensor();
+        final var co2Sensor = new Co2Sensor();
+        final var publisher = new MqttPublisher(System.getenv("MQTT_ADDR"), "room-sensor");
         while (true) {
-            var report = new TemperatureReport(sensor.getTemperature());
-            publisher.publish(report);
+            var report = new RoomReport(temperatureSensor.getTemperature(), co2Sensor.getCo2Level());
+            publisher.publish(report, "living-room");
             try {
-                Thread.sleep(1000);
+                sleep(1000);
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }

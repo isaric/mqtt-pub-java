@@ -18,10 +18,10 @@ public class MqttPublisher {
         }
     
     }
-    public void publish(Object object) {
+    public void publish(Object object, String topic) {
         try {
             var json = MAPPER.writeValueAsString(object);
-            client.publish("temperature", json.getBytes(), 0, false);
+            client.publish(topic, json.getBytes(), 0, false);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
