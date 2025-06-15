@@ -13,12 +13,13 @@ import static java.lang.Thread.sleep;
 public class App {
 
     public void run() {
+        final var topic = System.getenv("MQTT_TOPIC");
         final var temperatureSensor = new TemperatureSensor();
         final var co2Sensor = new Co2Sensor();
         final var publisher = new MqttPublisher(System.getenv("MQTT_ADDR"), "room-sensor");
         while (true) {
             var report = new RoomReport(temperatureSensor.getTemperature(), co2Sensor.getCo2Level());
-            publisher.publish(report, "living-room");
+            publisher.publish(report, topic);
             try {
                 sleep(1000);
             } catch (InterruptedException e) {
