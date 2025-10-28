@@ -1,0 +1,72 @@
+# Build and publish Docker image to Docker Hub
+# Requires two repository secrets:
+#   DOCKERHUB_USERNAME - your Docker Hub username
+#   DOCKERHUB_TOKEN    - a Docker Hub access token or password
+#
+# Triggers:
+#  - push to main
+#  - push of tags (e.g., v1.2.3)
+#  - manual dispatch
+
+name: Build and Publish Docker image
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - 'v*'
+      - 'release-*'
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: isaric/mqtt-pub-java
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-push:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU (for multi-arch builds)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Determine image tags
+        id: tag
+        env:
+          IMAGE_NAME: ${{ env.IMAGE_NAME }}
+        run: |
+          SHORT_SHA=${GITHUB_SHA::7}
+          IMAGE="${IMAGE_NAME}"
+          TAGS="${IMAGE}:latest,${IMAGE}:${SHORT_SHA}"
+          if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+            TAGNAME=${GITHUB_REF#refs/tags/}
+            TAGS="${TAGS},${IMAGE}:${TAGNAME}"
+          fi
+          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+
+      - name: Build and push image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.tag.outputs.tags }}
+          platforms: linux/amd64,linux/arm64
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
