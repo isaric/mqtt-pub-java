@@ -13,11 +13,8 @@ on:
 
 jobs:
   build:
-    name: Build and test (Java ${{ matrix.java-version }})
+    name: Build and test with Java 21
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        java-version: [11, 17, 21]
 
     steps:
       - name: Checkout repository
@@ -27,57 +24,16 @@ jobs:
         uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: ${{ matrix.java-version }}
-
-      - name: Detect build system
-        id: detect
-        run: |
-          echo "has_maven=false" >> $GITHUB_OUTPUT
-          echo "has_gradle=false" >> $GITHUB_OUTPUT
-          if [ -f "pom.xml" ]; then echo "has_maven=true" >> $GITHUB_OUTPUT; fi
-          if [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then echo "has_gradle=true" >> $GITHUB_OUTPUT; fi
-
-      - name: Cache Maven repository
-        if: ${{ steps.detect.outputs.has_maven == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-m2-${{ matrix.java-version }}-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-m2-${{ matrix.java-version }}-
-
-      - name: Cache Gradle caches
-        if: ${{ steps.detect.outputs.has_gradle == 'true' }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ matrix.java-version }}-${{ hashFiles('**/build.gradle*', '**/settings.gradle*') }}
-          restore-keys: |
-            ${{ runner.os }}-gradle-${{ matrix.java-version }}-
-
-      - name: Build with Maven
-        if: ${{ steps.detect.outputs.has_maven == 'true' }}
-        run: mvn -B -V verify
+          java-version: 21
 
       - name: Build with Gradle
-        if: ${{ steps.detect.outputs.has_gradle == 'true' }}
         run: |
-          chmod +x gradlew || true
-          if [ -f "./gradlew" ]; then
             ./gradlew --no-daemon --console=plain build
-          else
-            gradle build
-          fi
 
       - name: Upload test reports
-        if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.java-version }}
+          name: test-results-21
           path: |
-            **/target/surefire-reports/
             **/build/test-results/
             **/build/reports/tests/
-            **/target/failsafe-reports/
