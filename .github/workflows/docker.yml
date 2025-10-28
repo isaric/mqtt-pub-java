@@ -20,7 +20,7 @@ on:
   workflow_dispatch:
 
 env:
-  IMAGE_NAME: isaric/mqtt-pub-java
+  IMAGE_NAME: isaricpv/mqtt-pub-java
 
 permissions:
   contents: read
