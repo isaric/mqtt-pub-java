@@ -25,12 +25,11 @@ public class App {
         }
         final var publisher = new MqttPublisher(mqttCfg.addr(), mqttCfg.clientId());
         while (true) {
-            var map = new LinkedHashMap<String, Number>();
+            var reportMap = new LinkedHashMap<String, Number>();
             for (var sensor : sensors) {
-                map.put(sensor.label(), sensor.nextValue());
+                reportMap.put(sensor.label(), sensor.nextValue());
             }
-            var report = new RoomReport(map);
-            publisher.publish(report, mqttCfg.topic());
+            publisher.publish(reportMap, mqttCfg.topic());
             try {
                 sleep(mqttCfg.intervalMs() != null ? mqttCfg.intervalMs() : 1000);
             } catch (InterruptedException e) {
