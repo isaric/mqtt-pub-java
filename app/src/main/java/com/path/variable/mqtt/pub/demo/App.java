@@ -4,7 +4,6 @@ import com.path.variable.mqtt.pub.demo.config.AppConfig;
 import com.path.variable.mqtt.pub.demo.config.ConfigLoader;
 import com.path.variable.mqtt.pub.demo.publisher.MqttPublisher;
 import com.path.variable.mqtt.pub.demo.sensor.GenericSensor;
-import com.path.variable.mqtt.pub.demo.sensor.report.RoomReport;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
